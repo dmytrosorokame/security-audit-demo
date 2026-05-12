@@ -1,0 +1,41 @@
+name: Security Audit
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+# One run per PR — newer pushes cancel older runs to save quota.
+concurrency:
+  group: security-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          # Full history is required so the action can compute the diff against base.
+          fetch-depth: 0
+
+      - name: Fetch base ref
+        run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=50
+
+      - name: Run security-audit
+        uses: dmytrosorokame/security-audit@main
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          provider: openai
+          model: cheap
+          base-ref: origin/${{ github.event.pull_request.base.ref }}
+          fail-on: high
+          comment-on-pr: 'true'
+          upload-sarif: 'true'
+          include: '**/*.ts,**/*.tsx,**/*.js,**/*.jsx,Dockerfile,docker-compose*.yml,docker-compose*.yaml'
