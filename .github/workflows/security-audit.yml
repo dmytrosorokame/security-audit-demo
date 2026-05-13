@@ -8,6 +8,7 @@ permissions:
   contents: read
   pull-requests: write
   security-events: write
+  actions: read
 
 # One run per PR — newer pushes cancel older runs to save quota.
 concurrency:
