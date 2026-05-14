@@ -23,11 +23,13 @@ Every other branch introduces **one specific vulnerability** to exercise the aud
 
 | # | Branch | Pattern under test | Rule | Severity | Expected verdict |
 |---|---|---|---|---|---|
-| 1 | `demo/01-dom-xss` | React component injects unsanitized user HTML via `innerHTML` | R-01 | high | TP |
+| 1 | `demo/01-dom-xss` | New `Bio.tsx` injects unsanitized user HTML via `dangerouslySetInnerHTML` | R-01 | high | TP |
 | 2 | `demo/02-ssrf` | Proxy route accepts any URL — allowlist removed | B-04 | critical | TP |
 | 3 | `demo/03-safe-refactor` | Pure refactor — extract helper, no security impact | — | — | TN (0 findings) |
 | 4 | `demo/04-idor` | User route returns any user by id without ownership check | B-11 | medium | TP (low confidence) |
-| 5 | `demo/05-sanitizer-removed` | DOMPurify wrapper removed from `Comment.tsx` | R-15 | high | TP |
+| 5 | `demo/05-sanitizer-removed` | `DOMPurify` wrapper removed from `Comment.tsx` — `dangerouslySetInnerHTML` now consumes raw input | R-01 | high | TP |
+
+The catalog (`references/owasp-rules.md`) currently covers **R-01..R-11** (frontend), **B-01..B-15** (backend), and **D-01..D-08** (Docker / compose) — 34 rules total. Both PRs #1 and #5 collapse to R-01 because the resulting code shape is identical (`dangerouslySetInnerHTML` with no sanitizer); PR #1 introduces a new unsafe component, PR #5 regresses an existing safe one. A future "sanitizer regression" rule would split these, but for now R-01 with the diff context is enough to remediate either.
 
 PRs 1, 2, 4, 5 should result in a **failed check** (severity ≥ high or critical), PR 3 should be **green**.
 
