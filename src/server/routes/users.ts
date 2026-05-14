@@ -1,23 +1,12 @@
 import { Router } from 'express';
 import { Pool } from 'pg';
+import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 export const usersRouter = Router();
-
-// In a real app these would come from a session/JWT middleware.
-interface AuthedRequest {
-  user?: { id: string; role: 'user' | 'admin' };
-}
-
-function requireAuth(req: AuthedRequest, res: any, next: any) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-  next();
-}
 
 /**
  * Safe IDOR-resistant handler.
