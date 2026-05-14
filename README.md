@@ -21,8 +21,6 @@ Every other branch introduces **one specific vulnerability** to exercise the aud
 
 ## Reference PRs
 
-| # | Branch | Pattern under test | Rule | Severity | Expected verdict |
-|---|---|---|---|---|---|
 | # | Branch | Category | Pattern under test | Rule | Severity | Expected verdict |
 |---|---|---|---|---|---|---|
 | 1 | `demo/01-dom-xss` | Frontend | New `Bio.tsx` injects unsanitized user HTML via `dangerouslySetInnerHTML` | R-01 | high | TP |

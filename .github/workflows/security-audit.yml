@@ -30,7 +30,11 @@ jobs:
         run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=50
 
       - name: Run security-audit
-        uses: dmytrosorokame/security-audit@main
+        # Pinned to v0.1.0 (not @main) so a refactor on the upstream main
+        # branch can't silently change the security gate semantics of this
+        # demo. Bump the tag deliberately when you want the new behaviour.
+        # SECURITY.md §17 in the upstream repo documents the policy.
+        uses: dmytrosorokame/security-audit@v0.1.0
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           provider: openai
