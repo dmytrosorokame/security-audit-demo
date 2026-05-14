@@ -23,15 +23,22 @@ Every other branch introduces **one specific vulnerability** to exercise the aud
 
 | # | Branch | Pattern under test | Rule | Severity | Expected verdict |
 |---|---|---|---|---|---|
-| 1 | `demo/01-dom-xss` | New `Bio.tsx` injects unsanitized user HTML via `dangerouslySetInnerHTML` | R-01 | high | TP |
-| 2 | `demo/02-ssrf` | Proxy route accepts any URL — allowlist removed | B-04 | critical | TP |
-| 3 | `demo/03-safe-refactor` | Pure refactor — extract helper, no security impact | — | — | TN (0 findings) |
-| 4 | `demo/04-idor` | User route returns any user by id without ownership check | B-11 | medium | TP (low confidence) |
-| 5 | `demo/05-sanitizer-removed` | `DOMPurify` wrapper removed from `Comment.tsx` — `dangerouslySetInnerHTML` now consumes raw input | R-01 | high | TP |
+| # | Branch | Category | Pattern under test | Rule | Severity | Expected verdict |
+|---|---|---|---|---|---|---|
+| 1 | `demo/01-dom-xss` | Frontend | New `Bio.tsx` injects unsanitized user HTML via `dangerouslySetInnerHTML` | R-01 | high | TP |
+| 2 | `demo/02-ssrf` | Backend | Proxy route accepts any URL — allowlist removed | B-04 | critical | TP |
+| 3 | `demo/03-safe-refactor` | Negative control | Pure refactor — extract helper, no security impact | — | — | TN (0 findings) |
+| 4 | `demo/04-idor` | Backend | User route returns any user by id without ownership check | B-11 | medium | TP (low confidence) |
+| 5 | `demo/05-sanitizer-removed` | Frontend | `DOMPurify` wrapper removed from `Comment.tsx` — `dangerouslySetInnerHTML` now consumes raw input | R-01 | high | TP |
+| 6 | `demo/06-sqli` | Backend | `search.ts` swaps parameterized `ILIKE $1` for template-literal concat — disguised as a perf optimisation | B-01 | critical | TP |
+| 7 | `demo/07-docker-root` | Container | `Dockerfile` drops `USER app` (and the `addgroup`/`adduser` lines) — process runs as root, justified as "easier log-volume perms" | D-01 | high | TP |
+| 8 | `demo/08-fp-suppress` | Suppression | Admin maintenance script uses raw-SQL template literal that **looks** like B-01 but is sourced from hardcoded module constants. Inline `// security-audit-ignore: B-01 — admin job, no user-controlled SQL inputs` is honored. | (B-01 suppressed) | — | TP→Suppressed (0 active findings) |
 
-The catalog (`references/owasp-rules.md`) currently covers **R-01..R-11** (frontend), **B-01..B-15** (backend), and **D-01..D-08** (Docker / compose) — 34 rules total. Both PRs #1 and #5 collapse to R-01 because the resulting code shape is identical (`dangerouslySetInnerHTML` with no sanitizer); PR #1 introduces a new unsafe component, PR #5 regresses an existing safe one. A future "sanitizer regression" rule would split these, but for now R-01 with the diff context is enough to remediate either.
+The catalog (`references/owasp-rules.md`) covers **R-01..R-11** (frontend, 11 rules), **B-01..B-15** (backend, 15 rules), and **D-01..D-08** (Docker / compose, 8 rules) — 34 total. The demo exercises one rule from each category plus a suppression case; the parent project's `benchmark/` directory covers ~50 cases with stricter F1/precision/recall reporting.
 
-PRs 1, 2, 4, 5 should result in a **failed check** (severity ≥ high or critical), PR 3 should be **green**.
+Both PRs #1 and #5 collapse to R-01 because the resulting code shape is identical (`dangerouslySetInnerHTML` with no sanitizer); PR #1 introduces a new unsafe component, PR #5 regresses an existing safe one. A future "sanitizer regression" rule would split these, but for now R-01 with the diff context is enough to remediate either.
+
+PRs 1, 2, 4, 5, 6, 7 should result in a **failed check** (severity ≥ high or critical), PRs 3 and 8 should be **green** (PR 3 because no finding, PR 8 because the single finding is suppressed by the inline directive — visible in the `suppressed_findings` block of the comment, with the reason quoted from the directive).
 
 ## Local reproduction
 
