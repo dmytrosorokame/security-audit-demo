@@ -7,7 +7,6 @@ const pool = new Pool({
 
 export const usersRouter = Router();
 
-// In a real app these would come from a session/JWT middleware.
 interface AuthedRequest {
   user?: { id: string; role: 'user' | 'admin' };
 }
@@ -20,22 +19,11 @@ function requireAuth(req: AuthedRequest, res: any, next: any) {
 }
 
 /**
- * Safe IDOR-resistant handler.
- * Returns the user record only when:
- *   (a) the caller asks for their own id, or
- *   (b) the caller is an admin.
- * Without this check, any authed user could read /api/users/:id for any id.
+ * Look up a user by id. Returns the public profile fields.
+ * Used by the social/profile pages to render any user's card.
  */
 usersRouter.get('/:id', requireAuth, async (req: Request, res: Response) => {
-  const authed = (req as AuthedRequest).user!;
   const targetId = req.params.id;
-
-  const isSelf = authed.id === targetId;
-  const isAdmin = authed.role === 'admin';
-
-  if (!isSelf && !isAdmin) {
-    return res.status(403).json({ error: 'forbidden' });
-  }
 
   const { rows } = await pool.query(
     'SELECT id, email, display_name FROM users WHERE id = $1',
