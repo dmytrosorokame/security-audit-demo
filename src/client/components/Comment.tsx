@@ -1,27 +1,17 @@
-import DOMPurify from 'dompurify';
-import { useMemo } from 'react';
-
 interface CommentProps {
   authorName: string;
   bodyHtml: string;
 }
 
 /**
- * Safe comment renderer.
- * User-controlled HTML is sanitized through DOMPurify before being
- * injected via dangerouslySetInnerHTML — script/iframe/onerror handlers
- * are stripped.
+ * Renders a comment. The bodyHtml is produced by our server-side markdown
+ * renderer, so we can inject it as-is.
  */
 export function Comment({ authorName, bodyHtml }: CommentProps) {
-  const safeHtml = useMemo(
-    () => DOMPurify.sanitize(bodyHtml, { USE_PROFILES: { html: true } }),
-    [bodyHtml],
-  );
-
   return (
     <article className="comment">
       <header>{authorName}</header>
-      <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
+      <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
     </article>
   );
 }
